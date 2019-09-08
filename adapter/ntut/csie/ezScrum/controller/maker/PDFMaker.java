@@ -56,8 +56,12 @@ public class PDFMaker {
 		// set right column cell
 		PdfPCell rightColumnCell = new PdfPCell();
 		String rightColumnCellContent = generateTaskCellContent(rightTaskJSON);
-		Paragraph rightParagraph = new Paragraph(rightColumnCellContent, new Font(bfChinese, 12, Font.NORMAL));
-		rightColumnCell.addElement(rightParagraph);
+		if(rightColumnCellContent.isEmpty()) {
+			rightColumnCell.setBorder(PdfPCell.NO_BORDER);
+		}else {
+			Paragraph rightParagraph = new Paragraph(rightColumnCellContent, new Font(bfChinese, 12, Font.NORMAL));
+			rightColumnCell.addElement(rightParagraph);
+		}
 		table.addCell(rightColumnCell);
 		return table;
 	}
@@ -252,13 +256,9 @@ public class PDFMaker {
 
 			table.addCell(cell);
 
-			cell = new PdfPCell(innerTable);
+			cell = new PdfPCell();
 			cell.setBorder(PdfPCell.BOTTOM | PdfPCell.LEFT);
 			cell.setBorderWidth(1f);
-			cell.setPadding(5f);
-
-			table.getDefaultCell().setBorder(PdfPCell.LEFT | PdfPCell.BOTTOM);
-			table.getDefaultCell().setBorderWidth(1f);
 			table.addCell(cell);
 
 			cell = new PdfPCell();

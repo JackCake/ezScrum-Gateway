@@ -1,5 +1,7 @@
 package ntut.csie.ezScrum.controller.sprintBacklog;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -8,11 +10,14 @@ import java.util.List;
 import java.util.Map;
 
 import javax.inject.Singleton;
+import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -23,22 +28,27 @@ import ntut.csie.ezScrum.controller.delegator.BacklogItemDelegator;
 import ntut.csie.ezScrum.controller.delegator.BacklogItemImportanceDelegator;
 import ntut.csie.ezScrum.controller.delegator.ProductDelegator;
 import ntut.csie.ezScrum.controller.delegator.SprintDelegator;
+import ntut.csie.ezScrum.controller.maker.PDFMaker;
 
-@Path("/products/{product_id}/sprints/{sprint_id}/committed_backlog_items")
+@Path("/products/{product_id}/sprints/{sprint_id}/printable_committed_backlog_items")
 @Singleton
-public class GetCommittedBacklogItemsBySprintIdRestfulAPI {
+public class PrintCommittedBacklogItemsRestfulAPI {
 	private ApplicationContext applicationContext = ApplicationContext.getInstance();
 	private ProductDelegator productDelegator = applicationContext.newProductDelegator();
 	private SprintDelegator sprintDelegator = applicationContext.newSprintDelegator();
 	private BacklogItemDelegator backlogItemDelegator = applicationContext.newBacklogItemDelegator();
 	private BacklogItemImportanceDelegator backlogItemImportanceDelegator = applicationContext.newBacklogItemImportanceDelegator();
 	
+	@Context
+	private ServletContext servletContext; 
+	
 	@GET
-	@Produces(MediaType.APPLICATION_JSON)
-	public synchronized String getCommittedBacklogItemsBySprintId(
+	@Path("/pdf")
+	@Produces("application/pdf")
+	public synchronized Response printCommittedBacklogItems(
 			@PathParam("product_id") String productId, 
 			@PathParam("sprint_id") String sprintId) {
-		JSONObject getCommittedBacklogItemsBySprintIdOutput = new JSONObject();
+		ResponseBuilder responseBuilder = null;
 		try {
 			JSONArray stagesJSON = productDelegator.getStagesInBoardByProductId(productId);
 			Map<String, JSONObject> backlogItemMap = new HashMap<>();
@@ -51,21 +61,13 @@ public class GetCommittedBacklogItemsBySprintIdRestfulAPI {
 				for(int j = 0; j < workItemsJSON.length(); j++) {
 					JSONObject workItemJSON = workItemsJSON.getJSONObject(j);
 					String workItemId = workItemJSON.getString("workItemId");
-					String status = "To do";
-					if(i == 1) {
-						status = "Doing";
-					}else if (i == 2) {
-						status = "Done";
-					}
 					
 					JSONObject backlogItemJSON = new JSONObject();
 					backlogItemJSON.put("backlogItemId", workItemJSON.getString("workItemId"));
 					backlogItemJSON.put("description", workItemJSON.getString("description"));
-					backlogItemJSON.put("status", status);
 					backlogItemJSON.put("estimate", workItemJSON.getInt("estimate"));
 					backlogItemJSON.put("importance", backlogItemImportanceDelegator.getBacklogItemImportanceByBacklogItemId(workItemId).getInt("importance"));
 					backlogItemJSON.put("notes", workItemJSON.getString("notes"));
-					backlogItemJSON.put("productId", productId);
 					backlogItemMap.put(workItemId, backlogItemJSON);
 				}
 			}
@@ -100,10 +102,19 @@ public class GetCommittedBacklogItemsBySprintIdRestfulAPI {
 				committedBacklogItemJSON.put("orderId", ++orderId);
 			}
 			
-			getCommittedBacklogItemsBySprintIdOutput.put("committedBacklogItemList", committedBacklogItemList);
-		} catch (JSONException e) {
+			//直接嵌入server上的pdf字型擋給系統 
+			String ttfPath = servletContext.getRealPath("") + "/WEB-INF/otherSetting/uming.ttf";
+			
+			PDFMaker pdfMaker = new PDFMaker();
+			File file = pdfMaker.getBacklogItemFile(ttfPath, committedBacklogItemList);
+			
+			FileInputStream fileInputStream = new FileInputStream(file);
+			responseBuilder = Response.ok((Object) fileInputStream);
+			responseBuilder.type("application/pdf");
+			responseBuilder.header("Content-Disposition", "filename=backlogItems.pdf");
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return getCommittedBacklogItemsBySprintIdOutput.toString();
+		return responseBuilder.build();
 	}
 }

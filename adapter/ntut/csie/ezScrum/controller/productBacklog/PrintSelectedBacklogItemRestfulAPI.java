@@ -1,18 +1,20 @@
 package ntut.csie.ezScrum.controller.productBacklog;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Singleton;
+import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
-import org.apache.struts.actions.DownloadAction.FileStreamInfo;
-import org.apache.struts.actions.DownloadAction.StreamInfo;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -30,19 +32,16 @@ public class PrintSelectedBacklogItemRestfulAPI {
 	private BacklogItemDelegator backlogItemDelegator = applicationContext.newBacklogItemDelegator();
 	private BacklogItemImportanceDelegator backlogItemImportanceDelegator = applicationContext.newBacklogItemImportanceDelegator();
 	
+	@Context
+	private ServletContext servletContext; 
+	
 	@GET
-	@Path("/{backlog_item_id}")
-	@Produces(MediaType.APPLICATION_JSON)
-	public synchronized StreamInfo printSelectedBacklogItem(@PathParam("product_id") String productId, 
+	@Path("/{backlog_item_id}/pdf")
+	@Produces("application/pdf")
+	public synchronized Response printSelectedBacklogItem(@PathParam("product_id") String productId, 
 			@PathParam("backlog_item_id") String backlogItemId) {
-		File file = null;
-
+		ResponseBuilder responseBuilder = null;
 		try {
-			//直接嵌入server上的pdf字型擋給系統 
-			ClassLoader classLoader = this.getClass().getClassLoader();
-			String ttfPath = classLoader.getResource("/").getPath() + "/otherSetting/uming.ttf";
-System.out.println(ttfPath);
-			
 			JSONArray stagesJSON = productDelegator.getStagesInBoardByProductId(productId);
 			List<JSONObject> backlogItemList = new ArrayList<>();
 			int orderId = 0;
@@ -74,13 +73,20 @@ System.out.println(ttfPath);
 				}
 			}
 
+			//直接嵌入server上的pdf字型擋給系統 
+			String ttfPath = servletContext.getRealPath("") + "/WEB-INF/otherSetting/uming.ttf";
+			
 			PDFMaker pdfMaker = new PDFMaker();
-			file = pdfMaker.getBacklogItemFile(ttfPath, backlogItemList);
+			File file = pdfMaker.getBacklogItemFile(ttfPath, backlogItemList);
+			
+			FileInputStream fileInputStream = new FileInputStream(file);
+			responseBuilder = Response.ok((Object) fileInputStream);
+			responseBuilder.type("application/pdf");
+			responseBuilder.header("Content-Disposition", "filename=backlogItem.pdf");
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
 		
-		String contentType = "application/pdf";
-		return new FileStreamInfo(contentType, file);
+		return responseBuilder.build();
 	}
 }
