@@ -13,6 +13,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -23,10 +24,11 @@ import ntut.csie.ezScrum.controller.delegator.BacklogItemDelegator;
 import ntut.csie.ezScrum.controller.delegator.BacklogItemImportanceDelegator;
 import ntut.csie.ezScrum.controller.delegator.ProductDelegator;
 import ntut.csie.ezScrum.controller.delegator.ReleaseDelegator;
+import ntut.csie.ezScrum.controller.maker.HTMLMaker;
 
-@Path("/products/{product_id}/releases/{release_id}/scheduled_backlog_items")
+@Path("/products/{product_id}/releases/{release_id}/release_information")
 @Singleton
-public class GetScheduledBacklogItemsByReleaseIdRestfulAPI {
+public class ShowReleaseInformationRestfulAPI {
 	private ApplicationContext applicationContext = ApplicationContext.getInstance();
 	private ProductDelegator productDelegator = applicationContext.newProductDelegator();
 	private ReleaseDelegator releaseDelegator = applicationContext.newReleaseDelegator();
@@ -34,12 +36,14 @@ public class GetScheduledBacklogItemsByReleaseIdRestfulAPI {
 	private BacklogItemImportanceDelegator backlogItemImportanceDelegator = applicationContext.newBacklogItemImportanceDelegator();
 	
 	@GET
-	@Produces(MediaType.APPLICATION_JSON)
-	public synchronized String getScheduledBacklogItemsByReleaseId(
+	@Produces(MediaType.TEXT_HTML)
+	public synchronized Response getReleaseInformation(
 			@PathParam("product_id") String productId, 
-			@PathParam("release_id") String releaseId) throws JSONException {
-		JSONObject getScheduledBacklogItemsByReleaseIdOutput = new JSONObject();
+			@PathParam("release_id") String releaseId) {
+		String result = "";
 		try {
+			JSONObject releaseJSON = getRelease(releaseId, productId);
+			
 			JSONArray stagesJSON = productDelegator.getStagesInBoardByProductId(productId);
 			Map<String, JSONObject> backlogItemMap = new HashMap<>();
 			for(int i = 0; i < 3; i++) {
@@ -51,21 +55,12 @@ public class GetScheduledBacklogItemsByReleaseIdRestfulAPI {
 				for(int j = 0; j < workItemsJSON.length(); j++) {
 					JSONObject workItemJSON = workItemsJSON.getJSONObject(j);
 					String workItemId = workItemJSON.getString("workItemId");
-					String status = "To do";
-					if(i == 1) {
-						status = "Doing";
-					}else if (i == 2) {
-						status = "Done";
-					}
 					
 					JSONObject backlogItemJSON = new JSONObject();
 					backlogItemJSON.put("backlogItemId", workItemJSON.getString("workItemId"));
 					backlogItemJSON.put("description", workItemJSON.getString("description"));
-					backlogItemJSON.put("status", status);
 					backlogItemJSON.put("estimate", workItemJSON.getInt("estimate"));
 					backlogItemJSON.put("importance", backlogItemImportanceDelegator.getBacklogItemImportanceByBacklogItemId(workItemId).getInt("importance"));
-					backlogItemJSON.put("notes", workItemJSON.getString("notes"));
-					backlogItemJSON.put("productId", productId);
 					backlogItemMap.put(workItemId, backlogItemJSON);
 				}
 			}
@@ -95,15 +90,23 @@ public class GetScheduledBacklogItemsByReleaseIdRestfulAPI {
 				
 			});
 			
-			int orderId = 0;
-			for(JSONObject scheduledBacklogItemJSON : scheduledBacklogItemList) {
-				scheduledBacklogItemJSON.put("orderId", ++orderId);
-			}
+			HTMLMaker htmlMaker = new HTMLMaker();
+			result = htmlMaker.getReleaseInformationHtml(releaseJSON, scheduledBacklogItemList);
 			
-			getScheduledBacklogItemsByReleaseIdOutput.put("scheduledBacklogItemList", scheduledBacklogItemList);
-		} catch (JSONException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return getScheduledBacklogItemsByReleaseIdOutput.toString();
+		return Response.status(200).entity(result).build();
+	}
+	
+	private JSONObject getRelease(String releaseId, String productId) throws JSONException {
+		JSONArray releasesJSON = releaseDelegator.getReleasesByProductId(productId);
+		for(int i = 0; i < releasesJSON.length(); i++) {
+			JSONObject releaseJSON = releasesJSON.getJSONObject(i);
+			if(releaseJSON.getString("releaseId").equals(releaseId)) {
+				return releaseJSON;
+			}
+		}
+		return null;
 	}
 }

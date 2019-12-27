@@ -1,5 +1,7 @@
 package ntut.csie.ezScrum.controller.releasePlan;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -8,11 +10,14 @@ import java.util.List;
 import java.util.Map;
 
 import javax.inject.Singleton;
+import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -23,22 +28,27 @@ import ntut.csie.ezScrum.controller.delegator.BacklogItemDelegator;
 import ntut.csie.ezScrum.controller.delegator.BacklogItemImportanceDelegator;
 import ntut.csie.ezScrum.controller.delegator.ProductDelegator;
 import ntut.csie.ezScrum.controller.delegator.ReleaseDelegator;
+import ntut.csie.ezScrum.controller.maker.PDFMaker;
 
-@Path("/products/{product_id}/releases/{release_id}/scheduled_backlog_items")
+@Path("/products/{product_id}/releases/{release_id}/printable_scheduled_backlog_items")
 @Singleton
-public class GetScheduledBacklogItemsByReleaseIdRestfulAPI {
+public class PrintScheduledBacklogItemsRestfulAPI {
 	private ApplicationContext applicationContext = ApplicationContext.getInstance();
 	private ProductDelegator productDelegator = applicationContext.newProductDelegator();
 	private ReleaseDelegator releaseDelegator = applicationContext.newReleaseDelegator();
 	private BacklogItemDelegator backlogItemDelegator = applicationContext.newBacklogItemDelegator();
 	private BacklogItemImportanceDelegator backlogItemImportanceDelegator = applicationContext.newBacklogItemImportanceDelegator();
 	
+	@Context
+	private ServletContext servletContext; 
+	
 	@GET
-	@Produces(MediaType.APPLICATION_JSON)
-	public synchronized String getScheduledBacklogItemsByReleaseId(
+	@Path("/pdf")
+	@Produces("application/pdf")
+	public synchronized Response printCommittedBacklogItems(
 			@PathParam("product_id") String productId, 
-			@PathParam("release_id") String releaseId) throws JSONException {
-		JSONObject getScheduledBacklogItemsByReleaseIdOutput = new JSONObject();
+			@PathParam("release_id") String releaseId) {
+		ResponseBuilder responseBuilder = null;
 		try {
 			JSONArray stagesJSON = productDelegator.getStagesInBoardByProductId(productId);
 			Map<String, JSONObject> backlogItemMap = new HashMap<>();
@@ -51,21 +61,13 @@ public class GetScheduledBacklogItemsByReleaseIdRestfulAPI {
 				for(int j = 0; j < workItemsJSON.length(); j++) {
 					JSONObject workItemJSON = workItemsJSON.getJSONObject(j);
 					String workItemId = workItemJSON.getString("workItemId");
-					String status = "To do";
-					if(i == 1) {
-						status = "Doing";
-					}else if (i == 2) {
-						status = "Done";
-					}
 					
 					JSONObject backlogItemJSON = new JSONObject();
 					backlogItemJSON.put("backlogItemId", workItemJSON.getString("workItemId"));
 					backlogItemJSON.put("description", workItemJSON.getString("description"));
-					backlogItemJSON.put("status", status);
 					backlogItemJSON.put("estimate", workItemJSON.getInt("estimate"));
 					backlogItemJSON.put("importance", backlogItemImportanceDelegator.getBacklogItemImportanceByBacklogItemId(workItemId).getInt("importance"));
 					backlogItemJSON.put("notes", workItemJSON.getString("notes"));
-					backlogItemJSON.put("productId", productId);
 					backlogItemMap.put(workItemId, backlogItemJSON);
 				}
 			}
@@ -100,10 +102,19 @@ public class GetScheduledBacklogItemsByReleaseIdRestfulAPI {
 				scheduledBacklogItemJSON.put("orderId", ++orderId);
 			}
 			
-			getScheduledBacklogItemsByReleaseIdOutput.put("scheduledBacklogItemList", scheduledBacklogItemList);
-		} catch (JSONException e) {
+			//直接嵌入server上的pdf字型擋給系統 
+			String ttfPath = servletContext.getRealPath("") + "/WEB-INF/otherSetting/uming.ttf";
+			
+			PDFMaker pdfMaker = new PDFMaker();
+			File file = pdfMaker.getBacklogItemFile(ttfPath, scheduledBacklogItemList);
+			
+			FileInputStream fileInputStream = new FileInputStream(file);
+			responseBuilder = Response.ok((Object) fileInputStream);
+			responseBuilder.type("application/pdf");
+			responseBuilder.header("Content-Disposition", "filename=backlogItems.pdf");
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return getScheduledBacklogItemsByReleaseIdOutput.toString();
+		return responseBuilder.build();
 	}
 }

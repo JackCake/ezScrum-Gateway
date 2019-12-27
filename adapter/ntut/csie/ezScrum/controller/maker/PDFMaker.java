@@ -40,7 +40,7 @@ public class PDFMaker {
 		return file;
 	}
 
-	public PdfPTable getPdfTableWithContent(BaseFont bfChinese, JSONObject leftTaskJSON, JSONObject rightTaskJSON) throws Exception {
+	private PdfPTable getPdfTableWithContent(BaseFont bfChinese, JSONObject leftTaskJSON, JSONObject rightTaskJSON) throws Exception {
 		
 		PdfPTable table = generateCustomPdfPTable();
 		// set left column cell
@@ -66,7 +66,7 @@ public class PDFMaker {
 		return table;
 	}
 	
-	public PdfPTable generateCustomPdfPTable() {
+	private PdfPTable generateCustomPdfPTable() {
 		float tableWidth = 100f;
 		int field = 3;
 		float fieldWidth[] = { 4.5f, 1f, 4.5f };
@@ -84,7 +84,7 @@ public class PDFMaker {
 	}
 
 
-	public String generateTaskCellContent(JSONObject taskJSON) throws Exception {
+	private String generateTaskCellContent(JSONObject taskJSON) throws Exception {
 		if (taskJSON == null) {
 			return "";
 		}
