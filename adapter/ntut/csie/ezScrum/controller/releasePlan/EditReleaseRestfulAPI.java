@@ -33,11 +33,11 @@ public class EditReleaseRestfulAPI {
 			String releaseInfo) {
 		String responseString = "";
 		try {
-			JSONObject sprintJSON = new JSONObject(releaseInfo);
-			String name = sprintJSON.getString("name");
-			String startDate = sprintJSON.getString("startDate");
-			String endDate = sprintJSON.getString("endDate");
-			String description = sprintJSON.getString("description");
+			JSONObject releaseJSON = new JSONObject(releaseInfo);
+			String name = releaseJSON.getString("name");
+			String startDate = releaseJSON.getString("startDate");
+			String endDate = releaseJSON.getString("endDate");
+			String description = releaseJSON.getString("description");
 			
 			Response response = releaseDelegator.editRelease(releaseId, name, startDate, endDate, description);
 			responseString = response.readEntity(String.class);
