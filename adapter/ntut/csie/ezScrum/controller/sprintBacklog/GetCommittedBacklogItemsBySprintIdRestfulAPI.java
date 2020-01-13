@@ -23,6 +23,7 @@ import ntut.csie.ezScrum.controller.delegator.BacklogItemDelegator;
 import ntut.csie.ezScrum.controller.delegator.BacklogItemImportanceDelegator;
 import ntut.csie.ezScrum.controller.delegator.ProductDelegator;
 import ntut.csie.ezScrum.controller.delegator.SprintDelegator;
+import ntut.csie.ezScrum.controller.delegator.TagDelegator;
 
 @Path("/products/{product_id}/sprints/{sprint_id}/committed_backlog_items")
 @Singleton
@@ -32,6 +33,7 @@ public class GetCommittedBacklogItemsBySprintIdRestfulAPI {
 	private SprintDelegator sprintDelegator = applicationContext.newSprintDelegator();
 	private BacklogItemDelegator backlogItemDelegator = applicationContext.newBacklogItemDelegator();
 	private BacklogItemImportanceDelegator backlogItemImportanceDelegator = applicationContext.newBacklogItemImportanceDelegator();
+	private TagDelegator tagDelegator = applicationContext.newTagDelegator();
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
@@ -40,6 +42,14 @@ public class GetCommittedBacklogItemsBySprintIdRestfulAPI {
 			@PathParam("sprint_id") String sprintId) {
 		JSONObject getCommittedBacklogItemsBySprintIdOutput = new JSONObject();
 		try {
+			JSONArray tagsJSON = tagDelegator.getTagsByProductId(productId);
+			Map<String, JSONObject> tagMap = new HashMap<>();
+			for(int i = 0; i < tagsJSON.length(); i++) {
+				JSONObject tagJSON = tagsJSON.getJSONObject(i);
+				String tagId = tagJSON.getString("tagId");
+				tagMap.put(tagId, tagJSON);
+			}
+			
 			JSONArray stagesJSON = productDelegator.getStagesInBoardByProductId(productId);
 			Map<String, JSONObject> backlogItemMap = new HashMap<>();
 			for(int i = 0; i < 3; i++) {
@@ -50,7 +60,7 @@ public class GetCommittedBacklogItemsBySprintIdRestfulAPI {
 				JSONArray workItemsJSON = backlogItemDelegator.getWorkItemsBySwimLaneId(swimLaneId);
 				for(int j = 0; j < workItemsJSON.length(); j++) {
 					JSONObject workItemJSON = workItemsJSON.getJSONObject(j);
-					String workItemId = workItemJSON.getString("workItemId");
+					String backlogItemId = workItemJSON.getString("workItemId");
 					String status = "To do";
 					if(i == 1) {
 						status = "Doing";
@@ -59,14 +69,15 @@ public class GetCommittedBacklogItemsBySprintIdRestfulAPI {
 					}
 					
 					JSONObject backlogItemJSON = new JSONObject();
-					backlogItemJSON.put("backlogItemId", workItemJSON.getString("workItemId"));
+					backlogItemJSON.put("backlogItemId", backlogItemId);
+					backlogItemJSON.put("assignedTagList", getAssignedTagsByBacklogItemId(tagMap, backlogItemId));
 					backlogItemJSON.put("description", workItemJSON.getString("description"));
 					backlogItemJSON.put("status", status);
 					backlogItemJSON.put("estimate", workItemJSON.getInt("estimate"));
-					backlogItemJSON.put("importance", backlogItemImportanceDelegator.getBacklogItemImportanceByBacklogItemId(workItemId).getInt("importance"));
+					backlogItemJSON.put("importance", backlogItemImportanceDelegator.getBacklogItemImportanceByBacklogItemId(backlogItemId).getInt("importance"));
 					backlogItemJSON.put("notes", workItemJSON.getString("notes"));
 					backlogItemJSON.put("productId", productId);
-					backlogItemMap.put(workItemId, backlogItemJSON);
+					backlogItemMap.put(backlogItemId, backlogItemJSON);
 				}
 			}
 			
@@ -105,5 +116,16 @@ public class GetCommittedBacklogItemsBySprintIdRestfulAPI {
 			e.printStackTrace();
 		}
 		return getCommittedBacklogItemsBySprintIdOutput.toString();
+	}
+	
+	private JSONArray getAssignedTagsByBacklogItemId(Map<String, JSONObject> tagMap, String backlogItemId) throws JSONException {
+		JSONArray assignedTags = new JSONArray();
+		JSONArray assignedTagsJSON = tagDelegator.getAssignedTagsByBacklogItemId(backlogItemId);
+		for(int i = 0; i < assignedTagsJSON.length(); i++) {
+			JSONObject assignedTagJSON = assignedTagsJSON.getJSONObject(i);
+			String tagId = assignedTagJSON.getString("tagId");
+			assignedTags.put(tagMap.get(tagId));
+		}
+		return assignedTags;
 	}
 }

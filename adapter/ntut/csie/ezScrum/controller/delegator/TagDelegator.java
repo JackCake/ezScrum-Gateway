@@ -70,7 +70,7 @@ public class TagDelegator {
 		return response;
 	}
 	
-	public JSONArray getAssignedTagByBacklogItemId(String backlogItemId) throws JSONException {
+	public JSONArray getAssignedTagsByBacklogItemId(String backlogItemId) throws JSONException {
 		JSONArray assignedTagsJSON = null;
 		
 		Response response = client.target(baseURL)

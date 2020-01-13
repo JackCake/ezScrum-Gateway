@@ -20,6 +20,7 @@ import ntut.csie.ezScrum.controller.delegator.BacklogItemImportanceDelegator;
 import ntut.csie.ezScrum.controller.delegator.ProductDelegator;
 import ntut.csie.ezScrum.controller.delegator.ReleaseDelegator;
 import ntut.csie.ezScrum.controller.delegator.SprintDelegator;
+import ntut.csie.ezScrum.controller.delegator.TagDelegator;
 
 @Path("/products/{product_id}/backlog_items")
 @Singleton
@@ -30,12 +31,21 @@ public class GetBacklogItemsByProductIdRestfulAPI {
 	private SprintDelegator sprintDelegator = applicationContext.newSprintDelegator();
 	private BacklogItemDelegator backlogItemDelegator = applicationContext.newBacklogItemDelegator();
 	private BacklogItemImportanceDelegator backlogItemImportanceDelegator = applicationContext.newBacklogItemImportanceDelegator();
+	private TagDelegator tagDelegator = applicationContext.newTagDelegator();
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	public synchronized String getBacklogItemsByProductId(@PathParam("product_id") String productId) {
 		JSONObject getBacklogItemsByProductIdOutput = new JSONObject();
 		try {
+			JSONArray tagsJSON = tagDelegator.getTagsByProductId(productId);
+			Map<String, JSONObject> tagMap = new HashMap<>();
+			for(int i = 0; i < tagsJSON.length(); i++) {
+				JSONObject tagJSON = tagsJSON.getJSONObject(i);
+				String tagId = tagJSON.getString("tagId");
+				tagMap.put(tagId, tagJSON);
+			}
+			
 			Map<String, Integer> releaseMap = new HashMap<>();
 			JSONArray releasesJSON = releaseDelegator.getReleasesByProductId(productId);
 			for(int i = 0 ; i < releasesJSON.length(); i++) {
@@ -87,23 +97,24 @@ public class GetBacklogItemsByProductIdRestfulAPI {
 					}
 					int releaseOrderId = 0;
 					int sprintOrderId = 0;
-					String workItemId = workItemJSON.getString("workItemId");
-					if(scheduledBacklogItemMap.containsKey(workItemId)) {
-						String releaseId = scheduledBacklogItemMap.get(workItemId);
+					String backlogItemId = workItemJSON.getString("workItemId");
+					if(scheduledBacklogItemMap.containsKey(backlogItemId)) {
+						String releaseId = scheduledBacklogItemMap.get(backlogItemId);
 						releaseOrderId = releaseMap.get(releaseId);
 					}
-					if(committedBacklogItemMap.containsKey(workItemId)) {
-						String sprintId = committedBacklogItemMap.get(workItemId);
+					if(committedBacklogItemMap.containsKey(backlogItemId)) {
+						String sprintId = committedBacklogItemMap.get(backlogItemId);
 						sprintOrderId = sprintMap.get(sprintId);
 					}
 					
 					JSONObject backlogItemJSON = new JSONObject();
-					backlogItemJSON.put("backlogItemId", workItemId);
+					backlogItemJSON.put("backlogItemId", backlogItemId);
 					backlogItemJSON.put("orderId", ++orderId);
+					backlogItemJSON.put("assignedTagList", getAssignedTagsByBacklogItemId(tagMap, backlogItemId));
 					backlogItemJSON.put("description", workItemJSON.getString("description"));
 					backlogItemJSON.put("status", status);
 					backlogItemJSON.put("estimate", workItemJSON.getInt("estimate"));
-					backlogItemJSON.put("importance", backlogItemImportanceDelegator.getBacklogItemImportanceByBacklogItemId(workItemId).getInt("importance"));
+					backlogItemJSON.put("importance", backlogItemImportanceDelegator.getBacklogItemImportanceByBacklogItemId(backlogItemId).getInt("importance"));
 					backlogItemJSON.put("notes", workItemJSON.getString("notes"));
 					backlogItemJSON.put("productId", productId);
 					backlogItemJSON.put("releaseOrderId", releaseOrderId);
@@ -117,5 +128,16 @@ public class GetBacklogItemsByProductIdRestfulAPI {
 			e.printStackTrace();
 		}
 		return getBacklogItemsByProductIdOutput.toString();
+	}
+	
+	private JSONArray getAssignedTagsByBacklogItemId(Map<String, JSONObject> tagMap, String backlogItemId) throws JSONException {
+		JSONArray assignedTags = new JSONArray();
+		JSONArray assignedTagsJSON = tagDelegator.getAssignedTagsByBacklogItemId(backlogItemId);
+		for(int i = 0; i < assignedTagsJSON.length(); i++) {
+			JSONObject assignedTagJSON = assignedTagsJSON.getJSONObject(i);
+			String tagId = assignedTagJSON.getString("tagId");
+			assignedTags.put(tagMap.get(tagId));
+		}
+		return assignedTags;
 	}
 }

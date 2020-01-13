@@ -1,7 +1,9 @@
 package ntut.csie.ezScrum.controller.productBacklog;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Singleton;
 import javax.ws.rs.Consumes;
@@ -33,13 +35,48 @@ public class AssignTagToBacklogItemRestfulAPI {
 			String assignedTagInfo) {
 		String responseString = "";
 		try {
+			Map<String, String> originalAssignedTagMap = new HashMap<>();
+			JSONArray assignedTagsJSON = tagDelegator.getAssignedTagsByBacklogItemId(backlogItemId);
+			for(int i = 0; i < assignedTagsJSON.length(); i++) {
+				JSONObject assignedTagJSON = assignedTagsJSON.getJSONObject(i);
+				String assignedTagId = assignedTagJSON.getString("assignedTagId");
+				String tagId = assignedTagJSON.getString("tagId");
+				originalAssignedTagMap.put(tagId, assignedTagId);
+			}
+			
+			Set<String> newTagIds = new HashSet<>();
 			JSONObject assignedTagJSON = new JSONObject(assignedTagInfo);
 			String tagIds = assignedTagJSON.getString("tagIds");
 			JSONArray tagIdsJSON = new JSONArray(tagIds);
 			for(int i = 0; i < tagIdsJSON.length(); i++) {
 				String tagId = tagIdsJSON.getString(i);
-				Response response = tagDelegator.assignTagToBacklogItem(backlogItemId, tagId);
-				responseString = response.readEntity(String.class);
+				newTagIds.add(tagId);
+				if(!originalAssignedTagMap.containsKey(tagId)) {
+					Response response = tagDelegator.assignTagToBacklogItem(backlogItemId, tagId);
+					responseString = response.readEntity(String.class);
+					JSONObject assignTagOutputJSON = new JSONObject(responseString);
+					boolean assignSuccess = assignTagOutputJSON.getBoolean("assignSuccess");
+					if(!assignSuccess) {
+						return responseString;
+					}
+				}
+			}
+			
+			for(String tagId : originalAssignedTagMap.keySet()) {
+				if(!newTagIds.contains(tagId)) {
+					String assignedTagId = originalAssignedTagMap.get(tagId);
+					Response response = tagDelegator.unassignTagFromBacklogItem(assignedTagId);
+					responseString = response.readEntity(String.class);
+					JSONObject unassignTagOutputJSON = new JSONObject(responseString);
+					boolean unassignSuccess = unassignTagOutputJSON.getBoolean("unassignSuccess");
+					if(!unassignSuccess) {
+						Map<String, Object> assignTagOutputMap = new HashMap<>();
+						assignTagOutputMap.put("assignSuccess", false);
+						assignTagOutputMap.put("errorMessage", unassignTagOutputJSON.getString("errorMessage"));
+						JSONObject assignTagOutputJSON = new JSONObject(assignTagOutputMap);
+						return assignTagOutputJSON.toString();
+					}
+				}
 			}
 		} catch (JSONException e) {
 			e.printStackTrace();
