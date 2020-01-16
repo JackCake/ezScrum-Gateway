@@ -6,6 +6,7 @@ import javax.ws.rs.client.ClientBuilder;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 
+import ntut.csie.ezScrum.controller.delegator.BacklogItemAttachFileDelegator;
 import ntut.csie.ezScrum.controller.delegator.BacklogItemDelegator;
 import ntut.csie.ezScrum.controller.delegator.BacklogItemImportanceDelegator;
 import ntut.csie.ezScrum.controller.delegator.ProductDelegator;
@@ -22,6 +23,7 @@ public class ApplicationContext {
 	private ProductDelegator productDelegator;
 	private BacklogItemDelegator backlogItemDelegator;
 	private BacklogItemImportanceDelegator backlogItemImportanceDelegator;
+	private BacklogItemAttachFileDelegator backlogItemAttachFileDelegator;
 	private TagDelegator tagDelegator;
 	private ReleaseDelegator releaseDelegator;
 	private SprintDelegator sprintDelegator;
@@ -53,6 +55,11 @@ public class ApplicationContext {
 	public BacklogItemImportanceDelegator newBacklogItemImportanceDelegator(){
 		backlogItemImportanceDelegator = new BacklogItemImportanceDelegator(client);
 		return backlogItemImportanceDelegator;
+	}
+	
+	public BacklogItemAttachFileDelegator newBacklogItemAttachFileDelegator() {
+		backlogItemAttachFileDelegator = new BacklogItemAttachFileDelegator(client);
+		return backlogItemAttachFileDelegator;
 	}
 	
 	public TagDelegator newTagDelegator() {

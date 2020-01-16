@@ -18,8 +18,7 @@ public class DeleteTaskRestfulAPI {
 	@DELETE
 	@Path("/{task_id}")
 	public synchronized String deleteTask(
-			@PathParam("task_id") String taskId,
-			String taskInfo) {
+			@PathParam("task_id") String taskId) {
 		Response response = taskDelegator.deleteTask(taskId);
 		return response.readEntity(String.class);
 	}

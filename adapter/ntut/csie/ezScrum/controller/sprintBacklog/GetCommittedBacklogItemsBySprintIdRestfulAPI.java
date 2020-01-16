@@ -19,6 +19,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import ntut.csie.ezScrum.ApplicationContext;
+import ntut.csie.ezScrum.controller.delegator.BacklogItemAttachFileDelegator;
 import ntut.csie.ezScrum.controller.delegator.BacklogItemDelegator;
 import ntut.csie.ezScrum.controller.delegator.BacklogItemImportanceDelegator;
 import ntut.csie.ezScrum.controller.delegator.ProductDelegator;
@@ -33,6 +34,7 @@ public class GetCommittedBacklogItemsBySprintIdRestfulAPI {
 	private SprintDelegator sprintDelegator = applicationContext.newSprintDelegator();
 	private BacklogItemDelegator backlogItemDelegator = applicationContext.newBacklogItemDelegator();
 	private BacklogItemImportanceDelegator backlogItemImportanceDelegator = applicationContext.newBacklogItemImportanceDelegator();
+	private BacklogItemAttachFileDelegator backlogItemAttachFileDelegator = applicationContext.newBacklogItemAttachFileDelegator();
 	private TagDelegator tagDelegator = applicationContext.newTagDelegator();
 	
 	@GET
@@ -76,6 +78,7 @@ public class GetCommittedBacklogItemsBySprintIdRestfulAPI {
 					backlogItemJSON.put("estimate", workItemJSON.getInt("estimate"));
 					backlogItemJSON.put("importance", backlogItemImportanceDelegator.getBacklogItemImportanceByBacklogItemId(backlogItemId).getInt("importance"));
 					backlogItemJSON.put("notes", workItemJSON.getString("notes"));
+					backlogItemJSON.put("attachFileList", backlogItemAttachFileDelegator.getBacklogItemAttachFilesByBacklogItemId(backlogItemId));
 					backlogItemJSON.put("productId", productId);
 					backlogItemMap.put(backlogItemId, backlogItemJSON);
 				}
