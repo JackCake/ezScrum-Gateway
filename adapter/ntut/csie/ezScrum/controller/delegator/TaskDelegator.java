@@ -76,6 +76,47 @@ public class TaskDelegator {
 		return response;
 	}
 	
+	public Response uploadTaskAttachFile(String attachFileContents, String name, String taskId) throws JSONException {
+		JSONObject taskAttachFileJSON = new JSONObject();
+		taskAttachFileJSON.put("attachFileContents", attachFileContents);
+		taskAttachFileJSON.put("name", name);
+		
+		Response response = client.target(baseURL)
+		        .path("/tasks/" + taskId + "/task_attach_files")
+		        .request()
+		        .post(Entity.json(taskAttachFileJSON.toString()));
+		return response;
+	}
+	
+	public JSONArray getTaskAttachFilesByTaskId(String taskId) throws JSONException {
+		JSONArray taskAttachFilesJSON = null;
+		
+		Response response = client.target(baseURL)
+		        .path("/tasks/" + taskId + "/task_attach_files")
+		        .request()
+		        .get();
+		
+		JSONObject taskAttachFileJSON = new JSONObject(response.readEntity(String.class));
+		taskAttachFilesJSON = taskAttachFileJSON.getJSONArray("taskAttachFileList");
+		return taskAttachFilesJSON;
+	}
+	
+	public Response downloadTaskAttachFile(String taskAttachFileId, String taskId) {
+		Response response = client.target(baseURL)
+		        .path("/tasks/" + taskId + "/task_attach_files/" + taskAttachFileId)
+		        .request()
+		        .get();
+		return response;
+	}
+	
+	public Response removeTaskAttachFile(String taskAttachFileId, String taskId) {
+		Response response = client.target(baseURL)
+		        .path("/tasks/" + taskId + "/task_attach_files/" + taskAttachFileId)
+		        .request()
+		        .delete();
+		return response;
+	}
+	
 	public JSONArray getHistoriesByTaskId(String taskId) throws JSONException {
 		JSONArray historiesJSON = null;
 		

@@ -16,9 +16,9 @@ public class BacklogItemAttachFileDelegator {
 		this.client = client;
 	}
 	
-	public Response uploadBacklogItemAttachFile(String attachFileContent, String name, String backlogItemId) throws JSONException {
+	public Response uploadBacklogItemAttachFile(String attachFileContents, String name, String backlogItemId) throws JSONException {
 		JSONObject backlogItemAttachFileJSON = new JSONObject();
-		backlogItemAttachFileJSON.put("attachFileContent", attachFileContent);
+		backlogItemAttachFileJSON.put("attachFileContents", attachFileContents);
 		backlogItemAttachFileJSON.put("name", name);
 		
 		Response response = client.target(baseURL)

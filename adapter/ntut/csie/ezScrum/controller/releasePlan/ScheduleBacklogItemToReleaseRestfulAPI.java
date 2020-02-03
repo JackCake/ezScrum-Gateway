@@ -45,7 +45,7 @@ public class ScheduleBacklogItemToReleaseRestfulAPI {
 			e.printStackTrace();
 			Map<String, Object> scheduleBacklogItemOutputMap = new HashMap<>();
 			scheduleBacklogItemOutputMap.put("scheduleSuccess", false);
-			scheduleBacklogItemOutputMap.put("errorMessage", "Sorry, please try again!");
+			scheduleBacklogItemOutputMap.put("errorMessage", "Sorry, there is the problem when schedule the backlog item to the release. Please contact to the system administrator!");
 			JSONObject scheduleBacklogItemOutputJSON = new JSONObject(scheduleBacklogItemOutputMap);
 			return scheduleBacklogItemOutputJSON.toString();
 		}

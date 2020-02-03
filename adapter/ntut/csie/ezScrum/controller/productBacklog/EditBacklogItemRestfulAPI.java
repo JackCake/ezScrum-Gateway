@@ -49,14 +49,14 @@ public class EditBacklogItemRestfulAPI {
 			if(editSuccess) {
 				editBacklogItemOutput.put("errorMessage", "");
 			} else {
-				editBacklogItemOutput.put("errorMessage", "Sorry, please try again!");
+				editBacklogItemOutput.put("errorMessage", "Sorry, it is not successful when edit the backlog item. Please contact to the system administrator!");
 			}
 			
 		} catch (JSONException e) {
 			e.printStackTrace();
 			Map<String, Object> editBacklogItemOutputMap = new HashMap<>();
 			editBacklogItemOutputMap.put("editSuccess", false);
-			editBacklogItemOutputMap.put("errorMessage", "Sorry, please try again!");
+			editBacklogItemOutputMap.put("errorMessage", "Sorry, there is the problem when edit the backlog item. Please contact to the system administrator!");
 			JSONObject editBacklogItemOutputJSON = new JSONObject(editBacklogItemOutputMap);
 			return editBacklogItemOutputJSON.toString();
 		}

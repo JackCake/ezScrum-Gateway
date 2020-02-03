@@ -47,7 +47,7 @@ public class AddSprintRestfulAPI {
 			e.printStackTrace();
 			Map<String, Object> addSprintOutputMap = new HashMap<>();
 			addSprintOutputMap.put("addSuccess", false);
-			addSprintOutputMap.put("errorMessage", "Sorry, please try again!");
+			addSprintOutputMap.put("errorMessage", "Sorry, there is the problem when add the sprint. Please contact to the system administrator!");
 			JSONObject addSprintOutputJSON = new JSONObject(addSprintOutputMap);
 			return addSprintOutputJSON.toString();
 		}

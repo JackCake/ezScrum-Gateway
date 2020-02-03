@@ -9,7 +9,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -27,27 +26,16 @@ public class DeleteReleaseRestfulAPI {
 	public synchronized String deletRelease(@PathParam("release_id") String releaseId) {
 		String responseString = "";
 		try {
-			unscheduleBacklogItemsByReleaseId(releaseId);
-			
 			Response response = releaseDelegator.deleteRelease(releaseId);
 			responseString = response.readEntity(String.class);
 		} catch (JSONException e) {
 			e.printStackTrace();
 			Map<String, Object> deleteReleaseOutputMap = new HashMap<>();
 			deleteReleaseOutputMap.put("deleteSuccess", false);
-			deleteReleaseOutputMap.put("errorMessage", "Sorry, please try again!");
+			deleteReleaseOutputMap.put("errorMessage", "Sorry, there is the problem when delete the release. Please contact to the system administrator!");
 			JSONObject deleteReleaseOutputJSON = new JSONObject(deleteReleaseOutputMap);
 			return deleteReleaseOutputJSON.toString();
 		}
 		return responseString;
-	}
-	
-	private void unscheduleBacklogItemsByReleaseId(String releaseId) throws JSONException {
-		JSONArray scheduledBacklogItemsJSON = releaseDelegator.getScheduledBacklogItemsByReleaseId(releaseId);
-		for(int i = 0; i < scheduledBacklogItemsJSON.length(); i++) {
-			JSONObject scheduledBacklogItemJSON = scheduledBacklogItemsJSON.getJSONObject(i);
-			String backlogItemId = scheduledBacklogItemJSON.getString("backlogItemId");
-			releaseDelegator.unscheduleBacklogItemFromRelease(backlogItemId, releaseId);
-		}
 	}
 }

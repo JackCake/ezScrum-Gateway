@@ -45,7 +45,7 @@ public class CommitBacklogItemToSprintRestfulAPI {
 			e.printStackTrace();
 			Map<String, Object> commitBacklogItemOutputMap = new HashMap<>();
 			commitBacklogItemOutputMap.put("commitSuccess", false);
-			commitBacklogItemOutputMap.put("errorMessage", "Sorry, please try again!");
+			commitBacklogItemOutputMap.put("errorMessage", "Sorry, there is the problem when commit the backlog item to the sprint. Please contact to the system administrator!");
 			JSONObject commitBacklogItemOutputJSON = new JSONObject(commitBacklogItemOutputMap);
 			return commitBacklogItemOutputJSON.toString();
 		}

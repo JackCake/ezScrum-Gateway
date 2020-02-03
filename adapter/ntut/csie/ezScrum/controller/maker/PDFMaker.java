@@ -24,6 +24,7 @@ public class PDFMaker {
 		Document document = new Document(PageSize.A4);
 		PdfWriter.getInstance(document, new FileOutputStream(path));
 		document.open();
+		document.add(new Paragraph("\n")); //To make sure PDF is at least 1 page.
 		// complete task size to even
 		if (taskJSONs.size() % 2 == 1) {
 			taskJSONs.add(null);
@@ -41,7 +42,6 @@ public class PDFMaker {
 	}
 
 	private PdfPTable getPdfTableWithContent(BaseFont bfChinese, JSONObject leftTaskJSON, JSONObject rightTaskJSON) throws Exception {
-		
 		PdfPTable table = generateCustomPdfPTable();
 		// set left column cell
 		PdfPCell leftColumnCell = new PdfPCell();
@@ -116,6 +116,7 @@ public class PDFMaker {
 		PdfWriter.getInstance(document, new FileOutputStream(path));
 
 		document.open();
+		document.add(new Paragraph("\n")); //To make sure PDF is at least 1 page.
 
 		for (JSONObject backlogItemJSON : backlogItemJSONs) {
 			PdfPTable outerTable = new PdfPTable(1);

@@ -44,7 +44,7 @@ public class EditTaskRestfulAPI {
 		} catch (JSONException e) {
 			Map<String, Object> editTaskOutputMap = new HashMap<>();
 			editTaskOutputMap.put("editSuccess", false);
-			editTaskOutputMap.put("errorMessage", "Sorry, please try again!");
+			editTaskOutputMap.put("errorMessage", "Sorry, there is the problem when edit the task. Please contact to the system administrator!");
 			JSONObject editTaskOutputJSON = new JSONObject(editTaskOutputMap);
 			return editTaskOutputJSON.toString();
 		}

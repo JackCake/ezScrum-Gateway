@@ -21,19 +21,19 @@ import org.json.JSONObject;
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 
 import ntut.csie.ezScrum.ApplicationContext;
-import ntut.csie.ezScrum.controller.delegator.BacklogItemAttachFileDelegator;
+import ntut.csie.ezScrum.controller.delegator.TaskDelegator;
 
-@Path("/committed_backlog_items/{backlog_item_id}/backlog_item_attach_files")
+@Path("/tasks/{task_id}/task_attach_files")
 @Singleton
-public class UploadBacklogItemAttachFileRestfulAPI {
+public class UploadTaskAttachFileRestfulAPI {
 	private ApplicationContext applicationContext = ApplicationContext.getInstance();
-	private BacklogItemAttachFileDelegator backlogItemAttachFileDelegator = applicationContext.newBacklogItemAttachFileDelegator();
+	private TaskDelegator taskDelegator = applicationContext.newTaskDelegator();
 	
 	@POST
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@Produces(MediaType.APPLICATION_JSON)
 	public synchronized String uploadBacklogItemAttachFile(
-			@PathParam("backlog_item_id") String backlogItemId, 
+			@PathParam("task_id") String taskId, 
 			@FormDataParam("attach_file") InputStream uploadedAttachFileInputStream, 
 			@FormDataParam("attach_file") FormDataContentDisposition attachFileDetail) {
 		String responseString = "";
@@ -46,15 +46,15 @@ public class UploadBacklogItemAttachFileRestfulAPI {
 			}
 			String attachFileContents = Base64.encode(buffer.toByteArray());
 			String fileName = new String(attachFileDetail.getFileName().getBytes("iso-8859-1"), "UTF-8");
-			Response response = backlogItemAttachFileDelegator.uploadBacklogItemAttachFile(attachFileContents, fileName, backlogItemId);
+			Response response = taskDelegator.uploadTaskAttachFile(attachFileContents, fileName, taskId);
 			responseString = response.readEntity(String.class);
 		} catch (Exception e) {
 			e.printStackTrace();
-			Map<String, Object> uploadBacklogItemAttachFileOutputMap = new HashMap<>();
-			uploadBacklogItemAttachFileOutputMap.put("uploadSuccess", false);
-			uploadBacklogItemAttachFileOutputMap.put("errorMessage", "Sorry, there is the problem when upload the attach file of the backlog item. Please contact to the system administrator!");
-			JSONObject uploadBacklogItemAttachFileOutputJSON = new JSONObject(uploadBacklogItemAttachFileOutputMap);
-			return uploadBacklogItemAttachFileOutputJSON.toString();
+			Map<String, Object> uploadTaskAttachFileOutputMap = new HashMap<>();
+			uploadTaskAttachFileOutputMap.put("uploadSuccess", false);
+			uploadTaskAttachFileOutputMap.put("errorMessage", "Sorry, there is the problem when upload the attach file of the task. Please contact to the system administrator!");
+			JSONObject uploadTaskAttachFileOutputJSON = new JSONObject(uploadTaskAttachFileOutputMap);
+			return uploadTaskAttachFileOutputJSON.toString();
 		}
 		return responseString;
 	}

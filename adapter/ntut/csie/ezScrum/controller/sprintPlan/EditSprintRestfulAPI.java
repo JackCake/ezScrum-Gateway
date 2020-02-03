@@ -48,7 +48,7 @@ public class EditSprintRestfulAPI {
 			e.printStackTrace();
 			Map<String, Object> editSprintOutputMap = new HashMap<>();
 			editSprintOutputMap.put("editSuccess", false);
-			editSprintOutputMap.put("errorMessage", "Sorry, please try again!");
+			editSprintOutputMap.put("errorMessage", "Sorry, there is the problem when edit the sprint. Please contact to the system administrator!");
 			JSONObject editSprintOutputJSON = new JSONObject(editSprintOutputMap);
 			return editSprintOutputJSON.toString();
 		}

@@ -14,11 +14,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import ntut.csie.ezScrum.ApplicationContext;
+import ntut.csie.ezScrum.controller.delegator.BacklogItemAttachFileDelegator;
 import ntut.csie.ezScrum.controller.delegator.BacklogItemDelegator;
 import ntut.csie.ezScrum.controller.delegator.BacklogItemImportanceDelegator;
 import ntut.csie.ezScrum.controller.delegator.ProductDelegator;
 import ntut.csie.ezScrum.controller.delegator.ReleaseDelegator;
 import ntut.csie.ezScrum.controller.delegator.SprintDelegator;
+import ntut.csie.ezScrum.controller.delegator.TagDelegator;
 import ntut.csie.ezScrum.controller.delegator.TaskDelegator;
 
 @Path("/products")
@@ -30,7 +32,9 @@ public class DeleteProductRestfulAPI {
 	private SprintDelegator sprintDelegator = applicationContext.newSprintDelegator();
 	private BacklogItemDelegator backlogItemDelegator = applicationContext.newBacklogItemDelegator();
 	private BacklogItemImportanceDelegator backlogItemImportanceDelegator = applicationContext.newBacklogItemImportanceDelegator();
+	private BacklogItemAttachFileDelegator backlogItemAttachFileDelegator = applicationContext.newBacklogItemAttachFileDelegator();
 	private TaskDelegator taskDelegator = applicationContext.newTaskDelegator();
+	private TagDelegator tagDelegator = applicationContext.newTagDelegator();
 
 	@DELETE
 	@Path("/{product_id}")
@@ -39,7 +43,8 @@ public class DeleteProductRestfulAPI {
 		try {
 			deleteReleasesByProductId(productId);
 			deleteSprintsByProductId(productId);
-			deleteBacklogItemImportancesAndTasksByProductId(productId);
+			deleteTasksAndBacklogItemImportanceAndAttachFilesByProductId(productId);
+			deleteTagsByProductId(productId);
 			
 			Response response = productDelegator.deleteProduct(productId);
 			boolean deleteSuccess = response.getStatus() == Response.Status.OK.getStatusCode();
@@ -47,13 +52,13 @@ public class DeleteProductRestfulAPI {
 			if(deleteSuccess) {
 				deleteProductOutput.put("errorMessage", "");
 			} else {
-				deleteProductOutput.put("errorMessage", "Sorry, please try again!");
+				deleteProductOutput.put("errorMessage", "Sorry, it is not successful when delete the product. Please contact to the system administrator!");
 			}
 		} catch (JSONException e) {
 			e.printStackTrace();
 			Map<String, Object> deleteProductOutputMap = new HashMap<>();
 			deleteProductOutputMap.put("deleteSuccess", false);
-			deleteProductOutputMap.put("errorMessage", "Sorry, please try again!");
+			deleteProductOutputMap.put("errorMessage", "Sorry, there is the problem when delete the product. Please contact to the system administrator!");
 			JSONObject deleteProductOutputJSON = new JSONObject(deleteProductOutputMap);
 			return deleteProductOutputJSON.toString();
 		}
@@ -78,7 +83,7 @@ public class DeleteProductRestfulAPI {
 		}
 	}
 	
-	private void deleteBacklogItemImportancesAndTasksByProductId(String productId) throws JSONException {
+	private void deleteTasksAndBacklogItemImportanceAndAttachFilesByProductId(String productId) throws JSONException {
 		JSONArray stagesJSON = productDelegator.getStagesInBoardByProductId(productId);
 		for(int i = 0; i < stagesJSON.length(); i++) {
 			JSONObject stageJSON = stagesJSON.getJSONObject(i);
@@ -88,15 +93,30 @@ public class DeleteProductRestfulAPI {
 			JSONArray workItemsJSON = backlogItemDelegator.getWorkItemsBySwimLaneId(swimLaneId);
 			for(int j = 0; j < workItemsJSON.length(); j++) {
 				JSONObject workItemJSON = workItemsJSON.getJSONObject(j);
-				String workItemId = workItemJSON.getString("workItemId");
-				JSONArray tasksJSON = taskDelegator.getTasksByWorkItemId(workItemId);
+				String backlogItemId = workItemJSON.getString("workItemId");
+				JSONArray tasksJSON = taskDelegator.getTasksByWorkItemId(backlogItemId);
 				for(int k = 0; k < tasksJSON.length(); k++) {
 					JSONObject taskJSON = tasksJSON.getJSONObject(k);
 					String taskId = taskJSON.getString("taskId");
 					taskDelegator.deleteTask(taskId);
 				}
-				backlogItemImportanceDelegator.deleteBacklogItemImportance(workItemId);
+				backlogItemImportanceDelegator.deleteBacklogItemImportance(backlogItemId);
+				JSONArray backlogItemAttachFilesJSON = backlogItemAttachFileDelegator.getBacklogItemAttachFilesByBacklogItemId(backlogItemId);
+				for(int k = 0; k < backlogItemAttachFilesJSON.length(); k++) {
+					JSONObject backlogItemAttachFileJSON = backlogItemAttachFilesJSON.getJSONObject(k);	
+					String backlogItemAttachFileId = backlogItemAttachFileJSON.getString("backlogItemAttachFileId");
+					backlogItemAttachFileDelegator.removeBacklogItemAttachFile(backlogItemAttachFileId);
+				}
 			}
+		}
+	}
+	
+	private void deleteTagsByProductId(String productId) throws JSONException {
+		JSONArray tagsJSON = tagDelegator.getTagsByProductId(productId);
+		for(int i = 0; i < tagsJSON.length(); i ++) {
+			JSONObject tagJSON = tagsJSON.getJSONObject(i);
+			String tagId = tagJSON.getString("tagId");
+			tagDelegator.deleteTag(tagId);
 		}
 	}
 }

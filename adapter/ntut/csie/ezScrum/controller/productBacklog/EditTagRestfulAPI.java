@@ -42,7 +42,7 @@ public class EditTagRestfulAPI {
 			e.printStackTrace();
 			Map<String, Object> editTagOutputMap = new HashMap<>();
 			editTagOutputMap.put("editSuccess", false);
-			editTagOutputMap.put("errorMessage", "Sorry, please try again!");
+			editTagOutputMap.put("errorMessage", "Sorry, there is the problem when edit the tag. Please contact to the system administrator!");
 			JSONObject editTagOutputJSON = new JSONObject(editTagOutputMap);
 			return editTagOutputJSON.toString();
 		}

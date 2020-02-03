@@ -82,7 +82,7 @@ public class AssignTagToBacklogItemRestfulAPI {
 			e.printStackTrace();
 			Map<String, Object> assignTagOutputMap = new HashMap<>();
 			assignTagOutputMap.put("assignSuccess", false);
-			assignTagOutputMap.put("errorMessage", "Sorry, please try again!");
+			assignTagOutputMap.put("errorMessage", "Sorry, there is the problem when assign the tag to the backlog item. Please contact to the system administrator!");
 			JSONObject assignTagOutputJSON = new JSONObject(assignTagOutputMap);
 			return assignTagOutputJSON.toString();
 		}

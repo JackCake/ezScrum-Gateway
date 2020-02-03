@@ -42,13 +42,13 @@ public class EditProductRestfulAPI {
 			if(editSuccess) {
 				editProductOutput.put("errorMessage", "");
 			} else {
-				editProductOutput.put("errorMessage", "Sorry, please try again!");
+				editProductOutput.put("errorMessage", "Sorry, it is not successful when edit the product. Please contact to the system administrator!");
 			}
 		} catch (JSONException e) {
 			e.printStackTrace();
 			Map<String, Object> editProductOutputMap = new HashMap<>();
 			editProductOutputMap.put("editSuccess", false);
-			editProductOutputMap.put("errorMessage", "Sorry, please try again!");
+			editProductOutputMap.put("errorMessage", "Sorry, there is the problem when edit the product. Please contact to the system administrator!");
 			JSONObject editProductOutputJSON = new JSONObject(editProductOutputMap);
 			return editProductOutputJSON.toString();
 		}

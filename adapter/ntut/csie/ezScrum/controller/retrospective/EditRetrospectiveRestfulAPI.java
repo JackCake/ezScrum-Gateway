@@ -42,7 +42,7 @@ public class EditRetrospectiveRestfulAPI {
 			e.printStackTrace();
 			Map<String, Object> editRetrospectiveOutputMap = new HashMap<>();
 			editRetrospectiveOutputMap.put("editSuccess", false);
-			editRetrospectiveOutputMap.put("errorMessage", "Sorry, please try again!");
+			editRetrospectiveOutputMap.put("errorMessage", "Sorry, there is the problem when edit the retrospective. Please contact to the system administrator!");
 			JSONObject editRetrospectiveOutputJSON = new JSONObject(editRetrospectiveOutputMap);
 			return editRetrospectiveOutputJSON.toString();
 		}

@@ -42,7 +42,7 @@ public class MoveTaskRestfulAPI {
 			e.printStackTrace();
 			Map<String, Object> moveTaskOutputMap = new HashMap<>();
 			moveTaskOutputMap.put("moveSuccess", false);
-			moveTaskOutputMap.put("errorMessage", "Sorry, please try again!");
+			moveTaskOutputMap.put("errorMessage", "Sorry, there is the problem when move the task. Please contact to the system administrator!");
 			JSONObject moveTaskOutputJSON = new JSONObject(moveTaskOutputMap);
 			return moveTaskOutputJSON.toString();
 		}

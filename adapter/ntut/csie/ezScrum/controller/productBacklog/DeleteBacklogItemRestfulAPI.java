@@ -14,11 +14,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import ntut.csie.ezScrum.ApplicationContext;
+import ntut.csie.ezScrum.controller.delegator.BacklogItemAttachFileDelegator;
 import ntut.csie.ezScrum.controller.delegator.BacklogItemDelegator;
 import ntut.csie.ezScrum.controller.delegator.BacklogItemImportanceDelegator;
 import ntut.csie.ezScrum.controller.delegator.ProductDelegator;
 import ntut.csie.ezScrum.controller.delegator.ReleaseDelegator;
 import ntut.csie.ezScrum.controller.delegator.SprintDelegator;
+import ntut.csie.ezScrum.controller.delegator.TagDelegator;
 import ntut.csie.ezScrum.controller.delegator.TaskDelegator;
 
 @Path("/products/{product_id}/backlog_items")
@@ -30,7 +32,9 @@ public class DeleteBacklogItemRestfulAPI {
 	private SprintDelegator sprintDelegator = applicationContext.newSprintDelegator();
 	private BacklogItemDelegator backlogItemDelegator = applicationContext.newBacklogItemDelegator();
 	private BacklogItemImportanceDelegator backlogItemImportanceDelegator = applicationContext.newBacklogItemImportanceDelegator();
+	private BacklogItemAttachFileDelegator backlogItemAttachFileDelegator = applicationContext.newBacklogItemAttachFileDelegator();
 	private TaskDelegator taskDelegator = applicationContext.newTaskDelegator();
+	private TagDelegator tagDelegator = applicationContext.newTagDelegator();
 	
 	@DELETE
 	@Path("/{backlog_item_id}")
@@ -39,21 +43,11 @@ public class DeleteBacklogItemRestfulAPI {
 			@PathParam("backlog_item_id") String backlogItemId) {
 		JSONObject deleteBacklogItemOutput = new JSONObject();
 		try {
-			JSONArray releasesJSON = releaseDelegator.getReleasesByProductId(productId);
-			for(int i = 0; i < releasesJSON.length(); i++) {
-				JSONObject releaseJSON = releasesJSON.getJSONObject(i);
-				String releaseId = releaseJSON.getString("releaseId");
-				releaseDelegator.unscheduleBacklogItemFromRelease(backlogItemId, releaseId);
-			}
-			
-			JSONArray sprintsJSON = sprintDelegator.getSprintsByProductId(productId);
-			for(int i = 0; i < sprintsJSON.length(); i ++) {
-				JSONObject sprintJSON = sprintsJSON.getJSONObject(i);
-				String sprintId = sprintJSON.getString("sprintId");
-				sprintDelegator.dropBacklogItemFromSprint(backlogItemId, sprintId);
-			}
-			
-			deleteTasksByWorkItemId(backlogItemId);
+			unscheduleBacklogItemsFromRelease(productId, backlogItemId);
+			dropBacklogItemsFromSprint(productId, backlogItemId);
+			unassignTagsFromBacklogItem(backlogItemId);
+			deleteTasksByBacklogItemId(backlogItemId);
+			deleteBacklogItemAttachFilesByBacklogItemId(backlogItemId);
 			
 			JSONObject idsJSON = getIdsJSON(productId, backlogItemId);
 			String swimLaneId = idsJSON.getString("swimLaneId");
@@ -67,23 +61,59 @@ public class DeleteBacklogItemRestfulAPI {
 			if(deleteSuccess) {
 				deleteBacklogItemOutput.put("errorMessage", "");
 			} else {
-				deleteBacklogItemOutput.put("errorMessage", "Sorry, please try again!");
+				deleteBacklogItemOutput.put("errorMessage", "Sorry, it is not successful when delete the importance of the backlog item. Please contact to the system administrator!");
 			}
 		} catch (JSONException e) {
 			e.printStackTrace();
 			Map<String, Object> deleteBacklogItemOutputMap = new HashMap<>();
 			deleteBacklogItemOutputMap.put("deleteSuccess", false);
-			deleteBacklogItemOutputMap.put("errorMessage", "Sorry, please try again!");
+			deleteBacklogItemOutputMap.put("errorMessage", "Sorry, there is the problem when delete the backlog item. Please contact to the system administrator!");
 			JSONObject deleteBacklogItemOutputJSON = new JSONObject(deleteBacklogItemOutputMap);
 			return deleteBacklogItemOutputJSON.toString();
 		}
 		return deleteBacklogItemOutput.toString();
 	}
 	
-	private void deleteTasksByWorkItemId(String workItemId) throws JSONException {
-		JSONArray tasksJSON = taskDelegator.getTasksByWorkItemId(workItemId);
+	private void unscheduleBacklogItemsFromRelease(String productId, String backlogItemId) throws JSONException {
+		JSONArray releasesJSON = releaseDelegator.getReleasesByProductId(productId);
+		for(int i = 0; i < releasesJSON.length(); i++) {
+			JSONObject releaseJSON = releasesJSON.getJSONObject(i);
+			String releaseId = releaseJSON.getString("releaseId");
+			releaseDelegator.unscheduleBacklogItemFromRelease(backlogItemId, releaseId);
+		}
+	}
+	
+	private void dropBacklogItemsFromSprint(String productId, String backlogItemId) throws JSONException {
+		JSONArray sprintsJSON = sprintDelegator.getSprintsByProductId(productId);
+		for(int i = 0; i < sprintsJSON.length(); i ++) {
+			JSONObject sprintJSON = sprintsJSON.getJSONObject(i);
+			String sprintId = sprintJSON.getString("sprintId");
+			sprintDelegator.dropBacklogItemFromSprint(backlogItemId, sprintId);
+		}
+	}
+	
+	private void unassignTagsFromBacklogItem(String backlogItemId) throws JSONException {
+		JSONArray assignedTagsJSON = tagDelegator.getAssignedTagsByBacklogItemId(backlogItemId);
+		for(int i = 0; i < assignedTagsJSON.length(); i++) {
+			JSONObject assignedTagJSON = assignedTagsJSON.getJSONObject(i);
+			String assignedTagId = assignedTagJSON.getString("assignedTagId");
+			tagDelegator.unassignTagFromBacklogItem(assignedTagId);
+		}
+	}
+	
+	private void deleteTasksByBacklogItemId(String backlogItemId) throws JSONException {
+		JSONArray tasksJSON = taskDelegator.getTasksByWorkItemId(backlogItemId);
 		for(int i = 0; i < tasksJSON.length(); i++) {
 			taskDelegator.deleteTask(tasksJSON.getJSONObject(i).getString("taskId"));
+		}
+	}
+	
+	private void deleteBacklogItemAttachFilesByBacklogItemId(String backlogItemId) throws JSONException {
+		JSONArray backlogItemAttachFilesJSON = backlogItemAttachFileDelegator.getBacklogItemAttachFilesByBacklogItemId(backlogItemId);
+		for(int i = 0; i < backlogItemAttachFilesJSON.length(); i++) {
+			JSONObject backlogItemAttachFileJSON = backlogItemAttachFilesJSON.getJSONObject(i);	
+			String backlogItemAttachFileId = backlogItemAttachFileJSON.getString("backlogItemAttachFileId");
+			backlogItemAttachFileDelegator.removeBacklogItemAttachFile(backlogItemAttachFileId);
 		}
 	}
 

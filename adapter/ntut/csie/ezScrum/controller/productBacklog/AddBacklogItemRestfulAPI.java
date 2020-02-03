@@ -63,13 +63,13 @@ public class AddBacklogItemRestfulAPI {
 				addBacklogItemOutput.put("errorMessage", "");
 				addBacklogItemOutput.put("backlogItemId", backlogItemId);
 			} else {
-				addBacklogItemOutput.put("errorMessage", "Sorry, please try again!");
+				addBacklogItemOutput.put("errorMessage", "Sorry, it is not successful when add the backlog item. Please contact to the system administrator!");
 			}
 		} catch (JSONException e) {
 			e.printStackTrace();
 			Map<String, Object> addBacklogItemOutputMap = new HashMap<>();
 			addBacklogItemOutputMap.put("addSuccess", false);
-			addBacklogItemOutputMap.put("errorMessage", "Sorry, please try again!");
+			addBacklogItemOutputMap.put("errorMessage", "Sorry, there is the problem when add the backlog item. Please contact to the system administrator!");
 			JSONObject addBacklogItemOutputJSON = new JSONObject(addBacklogItemOutputMap);
 			return addBacklogItemOutputJSON.toString();
 		}

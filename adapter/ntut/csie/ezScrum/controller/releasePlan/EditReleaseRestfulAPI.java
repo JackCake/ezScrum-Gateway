@@ -45,7 +45,7 @@ public class EditReleaseRestfulAPI {
 			e.printStackTrace();
 			Map<String, Object> editReleaseOutputMap = new HashMap<>();
 			editReleaseOutputMap.put("editSuccess", false);
-			editReleaseOutputMap.put("errorMessage", "Sorry, please try again!");
+			editReleaseOutputMap.put("errorMessage", "Sorry, there is the problem when edit the release. Please contact to the system administrator!");
 			JSONObject editReleaseOutputJSON = new JSONObject(editReleaseOutputMap);
 			return editReleaseOutputJSON.toString();
 		}

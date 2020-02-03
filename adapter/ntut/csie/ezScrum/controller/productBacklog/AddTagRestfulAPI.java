@@ -41,7 +41,7 @@ public class AddTagRestfulAPI {
 			e.printStackTrace();
 			Map<String, Object> addTagOutputMap = new HashMap<>();
 			addTagOutputMap.put("addSuccess", false);
-			addTagOutputMap.put("errorMessage", "Sorry, please try again!");
+			addTagOutputMap.put("errorMessage", "Sorry, there is the problem when add the tag. Please contact to the system administrator!");
 			JSONObject addTagOutputJSON = new JSONObject(addTagOutputMap);
 			return addTagOutputJSON.toString();
 		}

@@ -69,7 +69,7 @@ public class MoveBacklogItemRestfulAPI {
 			JSONObject movingBacklogItemJSON = workItemMap.get(backlogItemId);
 			if(movingBacklogItemJSON == null) {
 				moveBacklogItemOutput.put("moveSuccess", false);
-				moveBacklogItemOutput.put("errorMessage", "Sorry, the backlog item is not exist.");
+				moveBacklogItemOutput.put("errorMessage", "Sorry, the backlog item is not exist!");
 				return moveBacklogItemOutput.toString();
 			}
 			String originalStageId = movingBacklogItemJSON.getString("originalStageId");
@@ -83,13 +83,13 @@ public class MoveBacklogItemRestfulAPI {
 			if(moveSuccess) {
 				moveBacklogItemOutput.put("errorMessage", "");
 			} else {
-				moveBacklogItemOutput.put("errorMessage", "Sorry, please try again!");
+				moveBacklogItemOutput.put("errorMessage", "Sorry, it is not successful when move the backlog item. Please contact to the system administrator!");
 			}
 		} catch (JSONException e) {
 			e.printStackTrace();
 			Map<String, Object> moveBacklogItemOutputMap = new HashMap<>();
 			moveBacklogItemOutputMap.put("moveSuccess", false);
-			moveBacklogItemOutputMap.put("errorMessage", "Sorry, please try again!");
+			moveBacklogItemOutputMap.put("errorMessage", "Sorry, there is the problem when move the backlog item. Please contact to the system administrator!");
 			JSONObject moveBacklogItemOutputJSON = new JSONObject(moveBacklogItemOutputMap);
 			return moveBacklogItemOutputJSON.toString();
 		}

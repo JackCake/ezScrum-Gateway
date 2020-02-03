@@ -37,7 +37,7 @@ public class AddProductRestfulAPI {
 			boolean addProductSuccess = addProductResponse.getStatus() == Response.Status.OK.getStatusCode();
 			if(!addProductSuccess) {
 				addProductOutput.put("addSuccess", addProductSuccess);
-				addProductOutput.put("errorMessage", "Sorry, please try again!");
+				addProductOutput.put("errorMessage", "Sorry, it is not successful when add the product. Please contact to the system administrator!");
 				return addProductOutput.toString();
 			}
 			
@@ -51,7 +51,7 @@ public class AddProductRestfulAPI {
 				if(!addStageSuccess) {
 					productDelegator.deleteProduct(boardId);
 					addProductOutput.put("addSuccess", addStageSuccess);
-					addProductOutput.put("errorMessage", "Sorry, please try again!");
+					addProductOutput.put("errorMessage", "Sorry, it is not successful when create the task board in the sprint backlog of the product. Please contact to the system administrator!");
 					return addProductOutput.toString();
 				}
 			}
@@ -61,7 +61,7 @@ public class AddProductRestfulAPI {
 			e.printStackTrace();
 			Map<String, Object> addProductOutputMap = new HashMap<>();
 			addProductOutputMap.put("addSuccess", false);
-			addProductOutputMap.put("errorMessage", "Sorry, please try again!");
+			addProductOutputMap.put("errorMessage", "Sorry, there is the problem when add the product. Please contact to the system administrator!");
 			JSONObject addProductOutputJSON = new JSONObject(addProductOutputMap);
 			return addProductOutputJSON.toString();
 		}

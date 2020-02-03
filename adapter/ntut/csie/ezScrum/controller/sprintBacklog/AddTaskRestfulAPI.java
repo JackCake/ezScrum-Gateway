@@ -43,7 +43,7 @@ public class AddTaskRestfulAPI {
 			e.printStackTrace();
 			Map<String, Object> addTaskOutputMap = new HashMap<>();
 			addTaskOutputMap.put("addSuccess", false);
-			addTaskOutputMap.put("errorMessage", "Sorry, please try again!");
+			addTaskOutputMap.put("errorMessage", "Sorry, there is the problem when add the task. Please contact to the system administrator!");
 			JSONObject addTaskOutputJSON = new JSONObject(addTaskOutputMap);
 			return addTaskOutputJSON.toString();
 		}

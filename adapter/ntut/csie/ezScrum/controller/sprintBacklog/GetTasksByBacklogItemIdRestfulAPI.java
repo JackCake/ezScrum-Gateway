@@ -27,6 +27,11 @@ public class GetTasksByBacklogItemIdRestfulAPI {
 		try {
 			JSONArray taskList = taskDelegator.getTasksByWorkItemId(backlogItemId);
 			
+			for(int i = 0; i < taskList.length(); i++) {
+				String taskId = taskList.getJSONObject(i).getString("taskId");
+				taskList.getJSONObject(i).put("attachFileList", taskDelegator.getTaskAttachFilesByTaskId(taskId));
+			}
+			
 			getTasksByBacklogItemIdOutput.put("taskList", taskList);
 		} catch (JSONException e) {
 			e.printStackTrace();

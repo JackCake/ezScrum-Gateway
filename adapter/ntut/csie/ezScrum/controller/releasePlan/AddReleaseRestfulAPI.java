@@ -44,7 +44,7 @@ public class AddReleaseRestfulAPI {
 			e.printStackTrace();
 			Map<String, Object> addReleaseOutputMap = new HashMap<>();
 			addReleaseOutputMap.put("addSuccess", false);
-			addReleaseOutputMap.put("errorMessage", "Sorry, please try again!");
+			addReleaseOutputMap.put("errorMessage", "Sorry, there is the problem when add the release. Please contact to the system administrator!");
 			JSONObject addReleaseOutputJSON = new JSONObject(addReleaseOutputMap);
 			return addReleaseOutputJSON.toString();
 		}
