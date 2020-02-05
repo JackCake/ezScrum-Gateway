@@ -102,7 +102,7 @@ public class PrintCommittedBacklogItemsRestfulAPI {
 				committedBacklogItemJSON.put("orderId", ++orderId);
 			}
 			
-			//直接嵌入server上的pdf字型擋給系統 
+			//直接嵌入server上的pdf字型檔給系統 
 			String ttfPath = servletContext.getRealPath("") + "/WEB-INF/otherSetting/uming.ttf";
 			
 			PDFMaker pdfMaker = new PDFMaker();
